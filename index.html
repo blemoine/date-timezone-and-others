@@ -708,7 +708,7 @@
       <h2>Choisir la bonne représentation</h2>
 
       <ul>
-        <li>Le moment oú un événement est envoyé chez mnubo <strong class="fragment">Instant ou OffsetDateTime</strong></li>
+        <li>Le moment oú un événement est envoyé <strong class="fragment">Instant ou OffsetDateTime</strong></li>
         <li class="fragment">Le jour de noël cette année <strong class="fragment">LocalDate (2019-12-25)</strong></li>
         <li class="fragment">Éteindre ses lumières pendant 1h pour le jour de la Terre <strong class="fragment">LocalDateTime (2019-12-25T20:30)</strong></li>
       </ul>
@@ -720,43 +720,6 @@
       <ul>
         <li>2018-08-04T02:03:04+04:00</li>
         <li>2018-08-04T04:03:04+02:00</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Chez Mnubo - Ingestion</h2>
-
-      <ul>
-        <li>Si la time zone est nécessaire, il faut l'enregistrer dans une colonne à part</li>
-        <li class="fragment">Du point de vue extérieur, l'offset est perdu à l'ingestion</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Chez Mnubo - Restitution</h2>
-
-      <ul>
-        <li><code>groupBy</code> renvoie une date partielle représentée comme un date précise</li>
-        <li class="fragment">Le retour de <code>groupBy</code> peut être analysé comme étant un interval de 2 dates précises</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Chez Mnubo - Front end</h2>
-
-      <ul>
-        <li>Par défaut le frontend formate les valeurs reçues (en UTC) dans la time zone du navigateur</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Chez Mnubo</h2>
-
-      <p>Il y a donc 3 timezones qui peuvent être différentes</p>
-      <ul>
-        <li>celle d'ingestion</li>
-        <li>celle de requetage</li>
-        <li>celle de formatage</li>
       </ul>
     </section>
 
