@@ -1,0 +1,798 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>reveal.js</title>
+
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/black.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+  <style>
+    .visible.fade-out-display-none {
+      display: none;
+    }
+  </style>
+
+
+  <!-- Printing and PDF exports -->
+  <script>
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName('head')[0].appendChild(link);
+
+
+  </script>
+  <script src="js/moment.min.js"></script>
+  <script src="js/moment-hijri.js"></script>
+
+
+  <script src="js/raphael.min.js"></script>
+  <script src="js/flowchart-latest.js"></script>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+    <section>
+      <h2>Date and Time</h2>
+      <h3>in a nutshell</h3>
+      <blockquote style="font-size: 1.7rem;">If you know the enemy and know yourself, you need not fear the result of a hundred battles.<br/> Sun Tzu</blockquote>
+      <img src="ig/suntzu.jpg" alt="Sun Tzu"/>
+    </section>
+
+    <section>
+      <h2>Durations</h2>
+    </section>
+
+    <section>
+      <h2>What is a second?</h2>
+      <div class="fragment">
+        <p>The time that elapses during 9,192,631,770 cycles of the radiation produced by the transition between two levels of the cesium 133 atom</p>
+        <p>La durée de 9 192 631 770 périodes de la radiation correspondant à la transition entre les deux niveaux hyperfins de l’état fondamental de l’atome de césium 133 non perturbé</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>What is a minute?</h2>
+      <p class="fragment">60 seconds</p>
+    </section>  
+
+    <section>
+      <h2>What is an hour?</h2>
+      <p class="fragment">60 minutes - 3600 seconds</p>
+    </section>  
+
+    <section>
+      <h2>What is a day?</h2>
+      <p class="fragment">24 hours - 86400 seconds</p>
+    </section> 
+
+
+     <section>
+        <h2>Or... is it?</h2>
+        <div class="fragment">
+          <p> A day is also the interval between two successive returns of the Sun to the local meridian<p>
+           <div class="meridian-animation" style="margin:auto;height:400px;width:800px;background: cyan; position:relative;overflow:hidden;">
+            <div class="meridian-animation-sun" style="position:absolute; top:10px; height:80px; width:80px; border-radius: 100%; background: gold" ></div>
+            <div style="position:absolute;bottom:0;height:20%;background: green;width:100%;"></div>
+            <div class="meridian-line" style="width:1px; background: black; height:100%;position:absolute;left:50%"></div>
+           </div>
+        </div>
+       <script>
+          
+
+          const sun = document.querySelector('.meridian-animation-sun');
+
+          
+          function applyPosition([x,y]) {
+            setTimeout(() => {
+              const meridianBlockWidth = document.querySelector('.meridian-animation').offsetWidth;
+              const meridianBlockHeight = document.querySelector('.meridian-animation').offsetHeight;
+              sun.style.left = (x + 1/2) * meridianBlockWidth + 'px';
+              sun.style.top = (0.5 - y) * meridianBlockHeight + 'px';
+              
+            }, 100);
+          }
+
+          
+
+
+          const circlePosition = ([x0,y0], r) => t => {
+            return [x0 + r * Math.cos(t), y0 + r * Math.sin(t)]
+          }
+
+          const sunEquation = circlePosition([-0.05, -0.33], 0.4);
+
+
+          function draw(t) {
+
+            const newPosition = sunEquation(t);
+            applyPosition(newPosition);
+
+              const newT = t + (Math.PI / 300);
+              const nextDuration = (Math.abs(newT - Math.PI / 2) < Math.PI / 600)?2000:10;
+
+            document.querySelector('.meridian-line').hidden = nextDuration !== 2000;
+            setTimeout(() => {
+            
+              
+              if(newT >   Math.PI) {
+                draw( -   Math.PI)
+              } else {
+                draw(newT);
+              }
+              
+              
+              
+
+
+            }, nextDuration)
+          }
+
+          draw(0);
+
+
+       </script> 
+
+
+     </section> 
+
+
+    <section>
+        <h2>Duration of an apparent solar day?</h2>
+        
+        <img style="height:250px" src="ig/length-of-day.png" alt="86400 secondes ± 30 secondes"/>
+        <p class="fragment">The Earth's rotation speed decreases; one day in the Jurassic Era may have been only 23 hours long.</p>
+     </section> 
+
+     <section>
+      <h2>UT, TAI</h2>
+       <p>How many days have passed since January the 1st 1958, 00:00 at Greenwich (UK)?</p>
+        <ul >
+        <li class="fragment">TAI: exact definition of the day <br/><span id="tai-realtime" ></span></li>
+        <li class="fragment">UT: solar definition of the day <br/><span id="ut-realtime"></span></li>
+      </ul>
+
+      <p class="fragment"> In July 2020, there was a difference of 37 seconds</p>
+
+      <script>
+        const setDate = function() {
+            const base = new Date('1958-01-01T00:00:00Z').getTime();
+            const now = new Date().getTime();
+
+            const seconde = ((now - base) / 1000)
+
+            document.getElementById('tai-realtime').innerText = ((seconde + 37) / 86400).toPrecision(11)
+            document.getElementById('ut-realtime').innerText = ((seconde) / 86400).toPrecision(11)
+        };
+        setInterval(() => {
+            setDate();
+        }, 1000)
+          setDate();
+      </script>
+     </section> 
+
+     <section>
+      <h2>Which standard should we use?</h2>
+      <img src="ig/standards.png" />
+
+      <div>(thanks to <a href="https://xkcd.com/927/">https://xkcd.com/927/</a>)</div>
+     </section> 
+
+      <section>
+      <h2>UTC</h2>
+
+      <div class="fragment">
+
+        <p>1 day = 86400 seconds ± 1 second</p>
+        <p>Difference between UT and UTC is max 1second</p>
+
+        
+
+        <img style="height: 400px; background: white" alt="Difference between UT1 and UTC" src="ig/ut1_vs_utc.png"/>
+      </div>
+    </section>
+
+     <section>
+      <h2>Duration measured in days</h2>
+
+      <ul>
+        <li>Most of libraries doesn't support leap seconds</li>
+        <li>/!\ Pay extra attention if you need a measurement in seconds of a duration between days</li>
+      </ul>
+    </section>
+
+
+    <section>
+      <h2>Duration and Period</h2>
+
+      <ul>
+        <li>Duration: can be converted in seconds (minutes, hours, days, etc.)</li>
+        <li>Period: can be converted in seconds <em>if</em> we apply it to a given date (months, years, etc.)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>ISO 8601 / RFC 3309</h2>
+      <p>Define a standard notation for durations and periods</p>
+
+      <ul>
+        <li class="fragment">P3Y6M4DT12H30M5S</li>
+        <li class="fragment">P5Y4D</li>
+        <li class="fragment">PT12H30M5S</li>
+        <li class="fragment">PT5S</li>
+      </ul>
+    </section>
+
+     <section>
+      <h2>What is a date&nbsp;?</h2>
+
+      <p class="fragment">A way to express the amount time elapsed since a reference moment</p>
+      <p class="fragment">A calendar defines the units used to write date (weeks, months, years, etc.)</p>
+    </section>
+
+    <section>
+      <h2>How is our (usual) calendar defined?</h2>
+
+      <p class="fragment">Gregorian calendar</p>
+      <p class="fragment">January the 1st, 1 is the reference moment</p>
+      <p class="fragment">The day is solar</p>
+    </section>
+
+    <section>
+      <h2>What is a gregorian year?</h2>
+
+      <p class="fragment">365 or 366 days, on average 365.2425 days</p>
+      <p class="fragment">The earth revolves around the sun in ~365.2422 days</p>
+      <p class="fragment">The tropical year duration increases by ~500ms/year</p>
+     </section> 
+
+    <section>
+      <h2>The gregorian Calendar also defines...</h2>
+      <ul>
+        <li>Month</li>
+        <li>Week days</li>
+      </ul> 
+    </section>  
+
+    <section>
+      <h2>Trivia and proleptic calendar</h2>
+      <p class="fragment">In France, 1582-12-09 (julian) is the day before 1582-12-20 (gregorian)</p>
+      <p class="fragment">In UK, 1752-09-02 (julian) is the day before 1752-09-14 (gregorian)</p>
+    </section>
+
+     <section>
+      <h2>Another example: the Islamic Calendar</h2>
+
+      <p>Day is solar, year is lunar (354 or 355 days)</p>
+      <p>Reference moment is July the 16th 622 (gregorian proleptic)</p>
+      
+      <p class="fragment"><span id="today-hijri"></span> is <span id="today-gregorian"></span>
+      <script>
+        const now = moment().locale('en-CA');
+        document.getElementById('today-hijri').innerText = now.format('iD iMMMM iYYYY');
+        document.getElementById('today-gregorian').innerText = now.format('YYYY-MM-DD');
+      </script>
+            
+    </section>
+
+    <section>
+      <h2>Unix timestamp</h2>
+
+      <p class="fragment">start 1st of January 1970 at 00h00 at meridian Z</p>
+      <p class="fragment">number of seconds elaspsed <em>minus</em> leap seconds</p>
+
+      <p class="fragment"><span id="now-ts"></span> is <span id="now-gregorian"></span></p>
+
+      <script>
+        
+        const setTsExample = function() {
+          const nowDate = new Date();
+          document.getElementById('now-ts').innerText = nowDate.getTime() / 1000;
+          document.getElementById('now-gregorian').innerText = nowDate.toISOString();
+        }
+        setTsExample();
+        setInterval(setTsExample, 1000)
+        
+      </script>
+    </section>
+
+    <section>
+      <h2>What is the hour of the day?</h2>
+
+      <div class="fragment">
+        <p>The amount of hours, minutes, etc. elapsed since the local midnight</p>
+        <img src="ig/horloge.jpg" alt="horloge" style="width:200px"/>
+      </div>
+      
+
+    </section>
+
+    <section>
+      <h2 style="font-size: 90%">What is a time zone?</h2>
+
+      <div class="fragment">
+        <p>A geographic zones in which midnight is the same moment in time</p>
+
+        <img src="ig/timezone.png" alt="time zones"/>
+      </div>
+    </section>
+
+     <section>
+      <h2 style="font-weight: normal;">Offsets <strong>are not</strong> time zones</h2>
+      <p class="fragment">America/Montreal : -4 or -5</p>
+    </section>
+
+    <section>
+      <h2>Time zones change over time </h2>
+
+      <a href="https://www.iana.org/time-zones">https://www.iana.org/time-zones</a>
+      <p>Keep your os, JRE, dependencies, etc. up to date</p>
+      <p class="fragment">It's better to store the offset than the timezone to know the <em>exact</em> moment of an event</p>
+      <p class="fragment">Don't try to compute locale time in the future</p>
+    </section>
+
+    <section>
+      <h2>A timestamp doesn't have a time zone</h2>
+
+      <p>Time zone are only useful if the concept of locale time exists</p>
+    </section>
+
+     <section>
+      <h2>ISO 8601 / RFC 3309</h2>
+      <p>Define a standard way to write gregorian dates</p>
+
+      <ul>
+        <li class="fragment">2018-02-03</li>
+        <li class="fragment">2018-02-03T04</li>
+        <li class="fragment">2018-02-03T04:20:35</li>
+        <li class="fragment">2018-02-03T04:20:35+03:15</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Modeling time</h2>
+
+      <p>A precise moment in time - an instant. <br/>eg. timestamp or full iso datetime</p>
+      <div class="fragment">
+      <p>vs</p>
+      <p>A partial information - not a precise moment in time</p>
+      <p>eg. a date without time, a date time without offset</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Partial or not&nbsp;?</h2>
+
+      <ul>
+        <li>timestamp unix 1000 <strong class="fragment">Precise</strong></li>
+        <li class="fragment">2018-11-04 <strong class="fragment">Partial</strong></li>
+        <li class="fragment">2018-11-04T01:03:04 <strong class="fragment">Partial</strong></li>
+        <li class="fragment">2018-11-04T01:03:04 at Montréal <strong class="fragment">Partial!</strong></li>
+        <li class="fragment">2018-11-04T01:03:04+04:00<strong class="fragment"> Precise</strong></li>
+      </ul>
+    </section>
+
+
+    <section>
+      <h2>Quick note on JavaScript</h2>
+      <pre><code data-trim class="javascript">
+      const d = new Date('2020-08-12T09:00:00Z');
+      d.getYear() //  returns 120
+      d.getMonth() // returns 7
+      d.getHours() // returns 5 (on my computer)
+      </code></pre>
+    </section>
+
+    <section>
+      <h2>Use a library!</h2>
+      <ul>
+        <li>moment (de facto standard)</li>
+        <li>luxon (same as moment, but immutable!)</li>
+        <li>date-fns (if you don't care about timezone)</li>
+        <li>proposal-temporal (future EcmaScript standard)</li>
+      </ul>
+    </section> 
+
+
+ 
+    <section>
+      <h2>Equality problem</h2>
+
+      <ul>
+        <li>2018-08-04T02:03:04+04:00</li>
+        <li>2018-08-04T04:03:04+02:00</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Side note on community</h2>
+      <p>We're using <code>Date</code> everywhere, meaning that we lose input time zone</p>
+      
+    </section> 
+
+    <section>
+      <h2>Going further</h2>
+      <img src="ig/einstein.jpg" alt="einstein" />
+     </section> 
+
+    <section>
+      <h2>Conclusion</h2>
+      <ul>
+        <li>Time is complex, always think twice before doing anything with it</li>
+        <li>Chose the correct abstraction (with or without timezone, with or without time, etc.)</li>
+      </ul>  
+     </section> 
+
+     <section>
+      <h2>Questions?</h2>
+      
+     </section> 
+
+     
+
+    <!--
+    <section>
+      <h2>Manipuler le temps sans douleur</h2>
+      <blockquote style="font-size: 1.7rem;">Connais ton ennemi et connais-toi toi-même, même avec cent guerres à soutenir, cent fois tu seras victorieux.<br/> Sun Tzu</blockquote>
+      <img src="ig/suntzu.jpg" alt="Sun Tzu"/>
+    </section>
+
+    <section>
+      <h2>Les durées</h2>
+    </section>
+
+    <section>
+      <h2>Qu'est ce qu'une seconde&nbsp;?</h2>
+
+      <p class="fragment">La seconde est la durée de 9 192 631 770 périodes de la radiation correspondant à la transition entre les deux niveaux hyperfins de l’état fondamental de l’atome de césium
+        133</p>
+    </section>
+
+    <section>
+      <h2>Combien dure une minute&nbsp;?</h2>
+
+      <p class="fragment">60 secondes</p>
+    </section>
+
+    <section>
+      <h2>Combien dure une heure&nbsp;?</h2>
+
+      <div class="fragment">
+        <p>60 minutes</p>
+        <p>3600 secondes</p>
+      </div>
+
+    </section>
+
+
+    <section>
+      <h2>Combien dure un jour&nbsp;?</h2>
+
+      <div class="fragment">
+        <p>24 heures</p>
+        <p>86400 secondes</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Définition alternative du jour</h2>
+
+      <p>Durée entre 2 passages du soleil au méridien local</p>
+
+      <img class="fragment" style="height:250px" src="ig/length-of-day.png" alt="86400 secondes ± 30 secondes"/>
+      <p class="fragment">La Terre ralentie, un jour durait environ 23h au Jurassique</p>
+    </section>
+
+
+    <section>
+      <h2>UT, TAI</h2>
+      <p>Combien de jours se sont écoulés depuis le 1er janvier 1958 à minuit&nbsp; à Greenwich?</p>
+
+      <ul >
+        <li class="fragment">TAI: définition exacte du jour <br/><span id="tai-realtime" ></span></li>
+        <li class="fragment">UT: définition basée sur le jour solaire <br/><span id="ut-realtime"></span></li>
+      </ul>
+
+      <p class="fragment"> En mai 2019, il y a 37 secondes d'écart</p>
+
+      <script>
+        const setDate = function() {
+            const base = new Date('1958-01-01T00:00:00Z').getTime();
+            const now = new Date().getTime();
+
+            const seconde = ((now - base) / 1000)
+
+            document.getElementById('tai-realtime').innerText = ((seconde + 37) / 86400).toPrecision(11)
+            document.getElementById('ut-realtime').innerText = ((seconde) / 86400).toPrecision(11)
+        };
+        setInterval(() => {
+            setDate();
+        }, 1000)
+          setDate();
+      </script>
+    </section>
+
+    <section>
+      <h2>UTC</h2>
+
+      <div class="fragment">
+
+        <p>Jamais plus de 1s de difference entre UT et UTC</p>
+
+        <p>1 jour = 86400 secondes ± 1 secondes</p>
+
+        <img style="height: 400px; background: white" alt="Difference between UT1 and UTC" src="ig/ut1_vs_utc.png"/>
+      </div>
+    </section>
+
+    <section>
+      <h2>Conclusion sur la durée en jour</h2>
+
+      <ul>
+        <li>La plupart des librairies ne gèrent pas les secondes intercalaires</li>
+        <li>Attention si besoin de précision à la seconde pour une durée entre plusieurs jours</li>
+      </ul>
+    </section>
+
+
+    <section>
+      <h2>Combien dure une année&nbsp;?</h2>
+
+      <p class="fragment">365 ou 366 jours</p>
+      <p class="fragment">La terre tourne autour du soleil en ~365.2422 jours</p>
+      <p class="fragment">L'année (tropique) augmente de ~500ms / an</p>
+    </section>
+
+    <section>
+      <h2>Durées et Périodes</h2>
+
+      <ul>
+        <li>Durée: convertible en secondes (minutes, heures, jour, etc.)</li>
+        <li>Période: convertible en secondes uniquement si on précise une date (mois, année, etc.)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>ISO 8601 / RFC 3309</h2>
+      <p>Définit une notation standard pour les durées et périodes</p>
+
+      <ul>
+        <li class="fragment">P3Y6M4DT12H30M5S</li>
+        <li class="fragment">P5Y4D</li>
+        <li class="fragment">PT12H30M5S</li>
+        <li class="fragment">PT5S</li>
+      </ul>
+    </section>
+
+
+    <section>
+      <h2>Qu'est qu'une date&nbsp;?</h2>
+
+      <p class="fragment">Une notation de la quantité de temps écoulée depuis un moment référence</p>
+      <p class="fragment">Un calendrier définit les unités servant à cette notation (semaine, mois, année, etc.)</p>
+    </section>
+
+
+    <section>
+      <h2>Comment notre calendrier usuel est il définit&nbsp;?</h2>
+
+      <p class="fragment">Calendrier grégorien</p>
+      <p class="fragment">Le 1er janvier de l'an 1 comme référence</p>
+      <p class="fragment">Le jour est UT(C), et année = 365.2425 jours</p>
+    </section>
+
+
+    <section>
+      <h2>Anecdoctes et calendrier proleptique</h2>
+      <p class="fragment">En France, 09/12/1582 (julien) est la veille du 20/12/1582 (grégorien)</p>
+      <p class="fragment">En Grande-Bretagne, 02/09/1752 (julien) est la veille du 14/09/1752 (grégorien)</p>
+    </section>
+
+
+    <section>
+      <h2>Autre exemple: le calendrier de l'hégire</h2>
+
+      <p>Jour UT(C), année lunaire (de 354 ou 355 jours)</p>
+      <p>Basé sur le 16 juillet 622 (grégorien proleptique)</p>
+
+      <p class="fragment">16 Ramadan (9) 1440 ~ 21 mai 2019</p>
+    </section>
+
+
+    <section>
+      <h2>Le timestamp unix</h2>
+
+      <p class="fragment">démarre le 1er janvier 1970 à 00h00 au méridien Z</p>
+      <p class="fragment">nombre de seconde écoulées _minus_ les secondes intercalaires</p>
+
+      <p class="fragment">1558378702.380 ~ 2019-05-20 14:58:22</p>
+    </section>
+
+
+
+    <section>
+      <h2>Qu'est ce que l'heure de la journée&nbsp;?</h2>
+
+      <p class="fragment">Le nombre d'heures, minutes, etc. écoulées depuis 00:00 heure locale</p>
+    </section>
+
+    <section>
+      <h2 style="font-size: 90%">Qu'est ce qu'un fuseau horaire</h2>
+
+      <div class="fragment">
+        <p>Un ensemble de zones géographiques où 12h00 sera le même instant pour tout le monde.</p>
+
+        <img src="ig/timezone.png" alt="time zones"/>
+      </div>
+    </section>
+
+    <section>
+      <h2>Offsets != fuseaux horaires</h2>
+      <p class="fragment">America/Montreal : -4 ou -5</p>
+    </section>
+
+    <section>
+      <h2>Les fuseaux horaires évoluent</h2>
+
+      <a href="https://www.iana.org/time-zones">https://www.iana.org/time-zones</a>
+      <p>Pensez à mettre à jour l'OS, les libs, le JRE, etc.</p>
+      <p class="fragment">Il vaut mieux stocker l'offset que la time zone</p>
+      <p class="fragment">Ne calculez pas d'heure locale dans le future</p>
+    </section>
+
+    <section>
+      <h2>Un timestamp n'a pas de fuseau horaire</h2>
+
+      <p>Fuseau horaire implique la définition du concept d'heure locale</p>
+    </section>
+
+    <section>
+      <h2>ISO 8601 / RFC 3309</h2>
+      <p>Définit une notation standard pour les dates grégoriennes</p>
+
+      <ul>
+        <li class="fragment">2018-02-03</li>
+        <li class="fragment">2018-02-03T04</li>
+        <li class="fragment">2018-02-03T04:20:35</li>
+        <li class="fragment">2018-02-03T04:20:35+03:15</li>
+
+      </ul>
+    </section>
+
+    <section>
+      <h2>Le temps dans le code</h2>
+
+      <p>Instant précis du temps</p>
+      <p>vs</p>
+      <p>Une information partielle qui nécessite des compléments pour être un (ou des) instant(s) précis</p>
+    </section>
+
+    <section>
+      <h2>Représenter un instant précis</h2>
+      <ul>
+        <li>OffsetDatetime</li>
+        <li>Instant</li>
+        <li>Long</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Représenter des informations partielles</h2>
+      <ul>
+        <li>LocalDate, CivilDate, etc.</li>
+        <li>LocalTime, CivilTime, etc.</li>
+        <li>LocalDateTime</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Partiel ou pas&nbsp;?</h2>
+
+      <ul>
+        <li>timestamp unix 1000 <strong class="fragment">Précis!</strong></li>
+        <li class="fragment">2018-11-04 <strong class="fragment">Partiel</strong></li>
+        <li class="fragment">2018-11-04T01:03:04 <strong class="fragment">Partiel</strong></li>
+        <li class="fragment">2018-11-04T01:03:04 à Montréal <strong class="fragment">Partiel!</strong></li>
+        <li class="fragment">2018-11-04T01:03:04+04:00<strong class="fragment"> Précis</strong></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Choisir la bonne représentation</h2>
+
+      <ul>
+        <li>Le moment oú un événement est envoyé <strong class="fragment">Instant ou OffsetDateTime</strong></li>
+        <li class="fragment">Le jour de noël cette année <strong class="fragment">LocalDate (2019-12-25)</strong></li>
+        <li class="fragment">Éteindre ses lumières pendant 1h pour le jour de la Terre <strong class="fragment">LocalDateTime (2019-12-25T20:30)</strong></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>L'égalité</h2>
+
+      <ul>
+        <li>2018-08-04T02:03:04+04:00</li>
+        <li>2018-08-04T04:03:04+02:00</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>nombre de clients de magasins groupé par heure</h2>
+
+      <pre class="fragment"><code data-trim>
+        // Heure locale
+        "groupBy": [{
+            "time": "my_timestamp",
+            "interval": "hour",
+            "timezoneField": "my_time_zone"
+        }]
+      </code></pre>
+
+      <pre class="fragment"><code data-trim>
+        // Heure absolue
+        "groupBy": [{
+            "time": "my_timestamp",
+            "interval": "hour",
+            "timezone": "America/Montreal"
+        }]
+      </code></pre>
+    </section>
+
+    <section>
+      <h2>Les librairies à utiliser</h2>
+      <ul>
+        <li>JVM: <code>java.time.*</code></li>
+        <li>JavaScript: <code>luxon</code></li>
+        <li>Python: ???</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Conclusion</h2>
+
+      <h3 class="fragment">Utilisez la bonne abstraction&nbsp;!</h3>
+    </section>
+-->
+  </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+
+<script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+        history: true,
+        fragments: true,
+        fragmentInURL: true,
+        dependencies: [
+            { src: 'plugin/markdown/marked.js' },
+            { src: 'plugin/markdown/markdown.js' },
+            {
+                src: 'plugin/notes/notes.js',
+                async: true
+            },
+            {
+                src: 'plugin/highlight/highlight.js',
+                async: true,
+                callback: function() {
+                    hljs.initHighlightingOnLoad();
+                }
+            }
+        ]
+    });
+
+
+</script>
+</body>
+</html>
